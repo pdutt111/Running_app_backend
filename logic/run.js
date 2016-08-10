@@ -44,6 +44,7 @@ var runs={
     },
     getRun:function(req){
         var def= q.defer();
+        log.info(req.user._id);
         runTable.find({user_id:new ObjectId(req.user._id)},"length points duration cause_id").populate("cause_id","name description")
             .exec(function(err,rows){
                 log.info(rows);
