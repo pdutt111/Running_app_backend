@@ -14,6 +14,7 @@ var apn=require('../notificationSenders/apnsender');
 var gcm=require('../notificationSenders/gcmsender');
 var crypto=require('../authentication/crypto');
 var bcrypt = require('bcrypt');
+var request=require('request');
 
 var userTable;
 var pinTable;
@@ -42,8 +43,31 @@ var users={
         }
         return def.promise;
     },
+    validateToken:function(req){
+        var def= q.defer();
+        request("https://graph.facebook.com/debug_token?%20input_token="+req.body.fb_token+"&access_token="+config.get("fb_access_token"),function(err,response,body){
+            var body=JSON.parse(body);
+            log.info(body);
+            if(!err){
+                if(body.data&&(!body.data.error)&&body.data.user_id){
+                    if((new Date).getTime() / 1000<Number(body.data.expires_at)&&body.data.app_id==config.get("fb_app_id")){
+                        req.body.fb_user_id=body.data.user_id;
+                        def.resolve()
+                    }else{
+                        def.reject({status: 401, message: config.get('error.unauthorized')})
+                    }
+                }else{
+                    def.reject({status: 401, message: config.get('error.unauthorized')})
+                }
+            }else{
+                def.reject({status: 500, message: config.get('error.dberror')})
+            }
+        });
+        return def.promise;
+    },
     userCreate:function(req,res){
             var def= q.defer();
+        userTable.findOne({email:req.body.email})
             bcrypt.genSalt(10, function(err, salt) {
                 var passInterim=randomString(5,'aA#')
                 bcrypt.hash(passInterim, salt, function(err, hash) {
@@ -62,12 +86,12 @@ var users={
                         }else{
                             log.info(err);
                             if(err.code==11000) {
-                                    userTable.findOne({email:req.body.email},"email fb_token",function(err,user){
+                                    userTable.findOne({email:req.body.email},"email fb_user_id",function(err,user){
                                         if(!err&&user) {
-                                            if(user.fb_token==req.body.fb_token){
+                                            if(req.body.fb_user_id==user.fb_user_id){
                                                 def.resolve(user);
                                             }else{
-                                                def.reject({status: 500, message: config.get('error.dberror')});
+                                                def.reject({status:401,message:config.get('error.unauthorized')});
                                             }
                                         }else{
                                             log.warn(err);

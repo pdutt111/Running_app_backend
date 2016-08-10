@@ -37,11 +37,12 @@ mongoose.set('debug', config.get('mongo.debug'));
  * @type {Schema}
  */
 var userSchema=new Schema({
-    email:{type:String,validate:emailValidator},
+    email:{type:String,validate:emailValidator,unique:true,dropDups:true},
     phonenumber:{type:String,validate:phoneValidator},
     password:{type:String},
     name:{type:String},
     fb_token:String,
+    fb_user_id:String,
     device:{service:String,reg_id:String,active:{type:Boolean,default:true}},
     //is_admin:{type:Boolean,default:false},
     //is_verified:{type:Boolean,default:false},
