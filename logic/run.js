@@ -59,7 +59,7 @@ var runs={
     },
     getCauses:function(req){
         var def= q.defer();
-        causeTable.find({is_deleted:false},"name description contact_number",function(err,rows){
+        causeTable.find({is_deleted:false},"name description photo_url contact_number",function(err,rows){
             if(err){
                 def.reject({status: 500, message: config.get('error.dberror')});
             }else{
