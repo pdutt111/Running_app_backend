@@ -6,6 +6,7 @@ var config= require('config');
 var jwt = require('jwt-simple');
 var ObjectId = require('mongoose').Types.ObjectId;
 var moment= require('moment');
+var multer=require('multer')
 var async= require('async');
 var db=require('../db/DbSchema');
 var events = require('../events');
@@ -65,6 +66,20 @@ var runs={
                 def.resolve(rows);
             }
         })
+        return def.promise;
+    },
+    postCause:function(req){
+        var def= q.defer();
+        delete req.body.pass;
+        req.body.photo_url="/uploads/"+req.file.originalname;
+        var cause=new causeTable(req.body);
+        cause.save(function(err,row,info){
+            if(err){
+                def.reject({status: 500, message: config.get('error.dberror')});
+            }else{
+                def.resolve(row);
+            }
+        });
         return def.promise;
     }
 };

@@ -69,6 +69,7 @@ var causeSchema=new Schema({
     name:String,
     description:String,
     contact_number:Number,
+    photo_url:String,
     is_deleted:{type:Boolean,default:false},
     created_time:{type:Date,default:Date.now},
     modified_time:{type:Date,default:Date.now}
